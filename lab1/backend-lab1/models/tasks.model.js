@@ -2,7 +2,7 @@
 
 // The model layer is responsible for all data operations.
 // It reads from and writes to the in-memory data store (tasks.data.js).
-import tasks from "../data/tasks.data.js";
+import tasks from "#data/tasks.data";
 
 // Tracks the next id to assign when a new task is created.
 // Calculated once from the existing data to avoid id collisions.

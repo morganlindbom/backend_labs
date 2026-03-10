@@ -5,7 +5,7 @@
 // and starts listening on the configured port.
 
 import express from "express";
-import taskRoutes from "./routes/tasks.routes.js";
+import taskRoutes from "#routes/tasks.routes";
 
 const app = express();
 const PORT = 3000;

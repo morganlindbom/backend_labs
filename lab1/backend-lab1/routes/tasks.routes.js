@@ -4,7 +4,7 @@
 // Each route maps an HTTP method + path to the corresponding
 // controller function that handles the request.
 import { Router } from "express";
-import TaskController from "../controllers/tasks.controller.js";
+import TaskController from "#controllers/tasks.controller";
 
 const router = Router();
 

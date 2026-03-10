@@ -3,7 +3,7 @@
 // The controller layer sits between the routes and the model.
 // It handles HTTP request/response logic and delegates data operations
 // to the model layer. It never accesses the data store directly.
-import TaskModel from "../models/tasks.model.js";
+import TaskModel from "#models/tasks.model";
 
 function getAllTasks(req, res) {
   /*
