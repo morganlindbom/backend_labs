@@ -12,10 +12,13 @@
     "#routes/*": "./routes/*.js",
     "#controllers/*": "./controllers/*.js",
     "#models/*": "./models/*.js",
-    "#data/*": "./data/*.js"
+    "#data/*": "./data/*.js",
+    "#middleware/*": "./middleware/*.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
