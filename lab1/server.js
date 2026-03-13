@@ -5,7 +5,7 @@
 // and starts listening on the configured port.
 
 import express from "express";
-import taskRoutes from "#routes/tasks.routes";
+import itemsRoutes from "#routes/itemsRoutes";
 
 const app = express();
 const PORT = 3000;
@@ -18,12 +18,35 @@ app.use(express.json());
 // Makes API output easier to read in the browser.
 app.set("json spaces", 2);
 
-// Mount the tasks router under /api/tasks.
-// All routes defined in tasks.routes.js are now relative to this path.
-app.use("/api/tasks", taskRoutes);
+// Mount the items router under /items.
+// All routes in itemsRoutes.js are now relative to this path.
+app.use("/items", itemsRoutes);
+
+function logServerStartup() {
+  /*
+  """short description
+
+  Print startup information so API routes and curl examples are visible on boot.
+  """
+  */
+  console.log("================================================");
+  console.log("  Lab 1 - REST API");
+  console.log("================================================");
+  console.log(`\nServer running:\nhttp://localhost:${PORT}\n`);
+  console.log("API");
+  console.log(`GET    /items`);
+  console.log(`GET    /items/:id`);
+  console.log(`POST   /items`);
+  console.log(`PUT    /items/:id`);
+  console.log(`DELETE /items/:id`);
+  console.log("\nCURL EXAMPLES");
+  console.log(`curl http://localhost:${PORT}/items`);
+  console.log(`curl http://localhost:${PORT}/items/1`);
+  console.log(`curl -X POST http://localhost:${PORT}/items -H "Content-Type: application/json" -d "{\\"title\\":\\"New item\\",\\"description\\":\\"Created from curl\\",\\"status\\":\\"pending\\"}"`);
+  console.log(`curl -X PUT http://localhost:${PORT}/items/1 -H "Content-Type: application/json" -d "{\\"title\\":\\"Updated item\\",\\"description\\":\\"Updated from curl\\",\\"status\\":\\"in_progress\\"}"`);
+  console.log(`curl -X DELETE http://localhost:${PORT}/items/1`);
+  console.log("\n================================================\n");
+}
 
 // Start the HTTP server and begin listening for incoming connections
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(`Tasks endpoint: http://localhost:${PORT}/api/tasks`);
-});
+app.listen(PORT, logServerStartup);

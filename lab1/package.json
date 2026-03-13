@@ -12,10 +12,11 @@
     "#routes/*": "./routes/*.js",
     "#controllers/*": "./controllers/*.js",
     "#models/*": "./models/*.js",
-    "#data/*": "./data/*.js"
+    "#db/*": "./db/*.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "mysql2": "^3.19.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
