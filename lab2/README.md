@@ -1,102 +1,130 @@
-# Lab 1 – REST API med Express
+# Lab 2 - Secure REST API with Express
 
-En enkel REST API byggd med Node.js och Express för att hantera en lista av uppgifter (tasks). Datan lagras i minnet (in-memory) och ersätter en riktig databas.
+This Lab2 project is an Express and MySQL API for `items` with MVC structure, API key protection, and JWT-based login.
 
-## Teknik
+## Tech
 
-- **Node.js** med ES-moduler (`"type": "module"`)
-- **Express** – webbramverk för HTTP-routing och middleware
+- Node.js with ES modules
+- Express
+- MySQL with `mysql2`
+- Helmet for secure HTTP headers
+- `bcrypt` for password hashing
+- `jsonwebtoken` for JWT authentication
 
-## Projektstruktur
-
-```
-backend-lab1/
-├── server.js                   # Startpunkt – skapar och startar Express-servern
-├── package.json
-├── routes/
-│   └── tasks.routes.js         # Definierar alla routes för /api/tasks
-├── controllers/
-│   └── tasks.controller.js     # Hanterar HTTP-logik (request/response)
-├── models/
-│   └── tasks.model.js          # Dataoperationer (läs, skapa, uppdatera, ta bort)
-└── data/
-    └── tasks.data.js           # In-memory datakälla
-```
-
-## Kom igång
-
-### Förutsättningar
-
-- Node.js version 18 eller senare
-
-### Installation och start
+## Start
 
 ```bash
-cd backend-lab1
+cd lab2
 npm install
 npm start
 ```
 
-Servern startar på `http://localhost:3000`.
+The server runs at `http://localhost:3000`.
 
-## API-endpoints
+## Environment variables
 
-Bas-URL: `/api/tasks`
+The server reads these values from `.env`:
 
-| Metod    | Endpoint          | Beskrivning                        |
-| -------- | ----------------- | ---------------------------------- |
-| `GET`    | `/api/tasks`      | Hämta alla uppgifter               |
-| `GET`    | `/api/tasks/:id`  | Hämta en specifik uppgift via id   |
-| `POST`   | `/api/tasks`      | Skapa en ny uppgift                |
-| `PUT`    | `/api/tasks/:id`  | Uppdatera en befintlig uppgift     |
-| `DELETE` | `/api/tasks/:id`  | Ta bort en uppgift                 |
-
-### Datamodell
-
-```json
-{
-  "id": 1,
-  "title": "Buy groceries",
-  "completed": false
-}
+```text
+API_KEY=hkr-lab2-key
+JWT_SECRET=lab2-super-secret-key
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your-password
+DB_NAME=labs
 ```
 
-### Exempel – hämta alla uppgifter
+An `.env.example` file is included as a reference, and `.env` is ignored by git.
 
-```
-GET http://localhost:3000/api/tasks
+## Security configuration
+
+- Helmet is enabled
+- `x-powered-by` is disabled
+- Dependencies were updated with `npm update`
+- `npm audit` reports 0 vulnerabilities
+
+## User login
+
+The application contains a hard-coded user:
+
+- Username: `doe`
+- Password: `doe`
+
+The password is stored as a bcrypt hash and the login route returns a JWT token.
+
+## Routes
+
+Base URL: `/api/items`
+
+All routes below require a JWT token except `POST /api/items/login`.
+
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET | `/api/items` | Get all items |
+| GET | `/api/items/:id` | Get one item by id |
+| POST | `/api/items` | Create a new item |
+| PUT | `/api/items/:id` | Update an item |
+| DELETE | `/api/items/:id` | Delete an item |
+| GET | `/api/items/status/:status` | Filter items by status |
+| GET | `/api/items/search/:title` | Search items by title |
+| POST | `/api/items/login` | Login and receive JWT |
+| GET | `/api/items/secure/api-key` | Protected by API key |
+| GET | `/api/items/secure/jwt` | Protected by JWT |
+
+## Testing API key
+
+Valid API key value in `.env`:
+
+```text
+API_KEY=hkr-lab2-key
 ```
 
-```json
-{
-  "success": true,
-  "data": [
-    { "id": 1, "title": "Buy groceries", "completed": false },
-    { "id": 2, "title": "Read a book", "completed": true },
-    { "id": 3, "title": "Write lab report", "completed": false }
-  ]
-}
+Use query string:
+
+```text
+GET http://localhost:3000/api/items/secure/api-key?apiKey=hkr-lab2-key
 ```
 
-### Exempel – skapa en uppgift
+Or use header:
 
+```text
+x-api-key: hkr-lab2-key
 ```
-POST http://localhost:3000/api/tasks
+
+Invalid or missing API key returns `401 Unauthorized`.
+
+## Testing JWT
+
+Login request:
+
+```http
+POST /api/items/login
 Content-Type: application/json
 
 {
-  "title": "Study for exam",
-  "completed": false
+  "username": "doe",
+  "password": "doe"
 }
 ```
 
-Fältet `title` är obligatoriskt. `completed` är valfritt och sätts till `false` om det utelämnas.
+Example success response:
 
-### Felhantering
+```json
+{
+  "token": "<jwt-token>"
+}
+```
 
-| HTTP-statuskod | Situation                                     |
-| -------------- | --------------------------------------------- |
-| `200 OK`       | Lyckad GET eller PUT                          |
-| `201 Created`  | Ny resurs skapad via POST                     |
-| `400 Bad Request` | Saknat eller ogiltigt fält i request body  |
-| `404 Not Found`   | Ingen uppgift hittades med angivet id       |
+Use the token in the header:
+
+```text
+Authorization: Bearer <jwt-token>
+```
+
+Protected route:
+
+```text
+GET http://localhost:3000/api/items/secure/jwt
+```
+
+Invalid or missing token returns `401 Unauthorized`.

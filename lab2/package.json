@@ -1,7 +1,7 @@
 {
   "name": "backend-lab1",
   "version": "1.0.0",
-  "description": "Backend Development Lab 1 - REST API for Tasks",
+  "description": "Backend Development Lab 2 - Secured REST API for Items",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -15,7 +15,11 @@
     "#db/*": "./db/*.js"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.4.7",
     "express": "^4.18.2",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.19.1"
   },
   "devDependencies": {

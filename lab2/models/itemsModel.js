@@ -40,34 +40,35 @@ async function createItem(title, description, status) {
 }
 
 async function updateItem(id, title, description, status) {
-  /*
-  """short description
-
-  Update the selected item fields for the given id and return the updated row or null.
-  """
-  */
   const [result] = await pool.query(
     "UPDATE items SET title = ?, description = ?, status = ? WHERE id = ?",
     [title, description, status, id]
   );
 
-  // When affectedRows is zero, no record matched the provided id.
-  if (result.affectedRows === 0) {
-    return null;
-  }
+  if (result.affectedRows === 0) return null;
 
   return getItemById(id);
 }
 
 async function deleteItem(id) {
-  /*
-  """short description
-
-  Delete one item by id and return true when a row was removed, otherwise false.
-  """
-  */
   const [result] = await pool.query("DELETE FROM items WHERE id = ?", [id]);
   return result.affectedRows > 0;
+}
+
+async function getItemsByStatus(status) {
+  const [rows] = await pool.query(
+    "SELECT * FROM items WHERE status = ? ORDER BY id ASC",
+    [status]
+  );
+  return rows;
+}
+
+async function searchItemsByTitle(title) {
+  const [rows] = await pool.query(
+    "SELECT * FROM items WHERE title LIKE ? ORDER BY id ASC",
+    [`%${title}%`]
+  );
+  return rows;
 }
 
 export default {
@@ -76,4 +77,6 @@ export default {
   createItem,
   updateItem,
   deleteItem,
+  getItemsByStatus,
+  searchItemsByTitle,
 };
