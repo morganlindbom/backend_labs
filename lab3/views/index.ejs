@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lab 3 Home</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; }
+      nav a { margin-right: 1rem; }
+      .flash-success { color: #0a7a2f; }
+      .flash-error { color: #b00020; }
+    </style>
+  </head>
+  <body>
+    <h1>Lab 3</h1>
+    <p>Server-rendered pages with EJS + CRUD + sessions.</p>
+
+    <% if (success && success.length) { %>
+      <p class="flash-success"><%= success[0] %></p>
+    <% } %>
+    <% if (error && error.length) { %>
+      <p class="flash-error"><%= error[0] %></p>
+    <% } %>
+
+    <nav>
+      <a href="/friday">Friday Page</a>
+      <a href="/tasks">Tasks</a>
+    </nav>
+  </body>
+</html>

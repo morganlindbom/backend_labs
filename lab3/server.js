@@ -5,9 +5,18 @@
 // and starts listening on the configured port.
 
 import "dotenv/config";
+import path from "path";
+import { fileURLToPath } from "url";
 import express from "express";
 import helmet from "helmet";
+import session from "express-session";
+import flash from "connect-flash";
+import methodOverride from "method-override";
 import itemsRoutes from "#routes/itemsRoutes";
+import webRoutes from "#routes/webRoutes";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Fail fast on startup if required secrets or database settings are missing.
 const requiredEnvVars = [
@@ -33,16 +42,33 @@ app.disable("x-powered-by");
 // Helmet adds common HTTP security headers for the whole application.
 app.use(helmet());
 
-// Middleware: parse incoming requests with JSON payloads.
-// This makes req.body available for POST and PUT requests.
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride("_method"));
 
-// Format JSON responses with indentation.
-// Makes API output easier to read in the browser.
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 app.set("json spaces", 2);
 
-// Mount the items router under /api/items.
-// All routes in itemsRoutes.js are now relative to this path.
+app.use(
+  session({
+    secret: "lab3secret",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+
+app.use(flash());
+
+app.use((req, res, next) => {
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  next();
+});
+
+app.use("/", webRoutes);
+
+// Keep existing Lab2 REST API endpoints.
 app.use("/api/items", itemsRoutes);
 
 function logServerStartup() {
@@ -53,10 +79,20 @@ function logServerStartup() {
   """
   */
   console.log("================================================");
-  console.log("  Lab 2 - Secured REST API");
+  console.log("  Lab 3 - Express + EJS + CRUD + Sessions");
   console.log("================================================");
   console.log(`\nServer running:\nhttp://localhost:${PORT}\n`);
-  console.log("API");
+  console.log("WEB");
+  console.log(`GET    /`);
+  console.log(`GET    /friday`);
+  console.log(`GET    /tasks`);
+  console.log(`GET    /tasks/new`);
+  console.log(`POST   /tasks`);
+  console.log(`GET    /tasks/:id`);
+  console.log(`GET    /tasks/:id/edit`);
+  console.log(`PUT    /tasks/:id`);
+  console.log(`DELETE /tasks/:id`);
+  console.log("\nAPI");
   console.log(`GET    /api/items`);
   console.log(`GET    /api/items/:id`);
   console.log(`POST   /api/items`);

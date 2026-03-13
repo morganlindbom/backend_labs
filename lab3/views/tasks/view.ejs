@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View Task</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; }
+      dt { font-weight: bold; }
+      dd { margin: 0 0 1rem 0; }
+      nav a { margin-right: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Task #<%= task.id %></h1>
+
+    <dl>
+      <dt>Title</dt>
+      <dd><%= task.title %></dd>
+
+      <dt>Description</dt>
+      <dd><%= task.description || "-" %></dd>
+
+      <dt>Status</dt>
+      <dd><%= task.status %></dd>
+    </dl>
+
+    <nav>
+      <a href="/tasks">Back to list</a>
+      <a href="/tasks/<%= task.id %>/edit">Edit</a>
+    </nav>
+  </body>
+</html>

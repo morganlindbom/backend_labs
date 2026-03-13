@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Friday</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; }
+      .crazy { padding: 1rem; background: #ffef9f; border: 1px solid #e0c200; }
+      a { display: inline-block; margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Friday Checker</h1>
+    <p>Date: <strong><%= date %></strong></p>
+    <p>Day: <strong><%= day %></strong></p>
+
+    <% if (isFriday) { %>
+      <div class="crazy">
+        <h2>It is Friday!</h2>
+        <p>Crazy Friday mode is active. Have fun!</p>
+      </div>
+    <% } else { %>
+      <p>Not Friday yet. Try <code>/friday?date=2026-02-27</code>.</p>
+    <% } %>
+
+    <a href="/">Back to Home</a>
+  </body>
+</html>
