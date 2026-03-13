@@ -1,7 +1,7 @@
 {
-  "name": "backend-lab2",
+  "name": "backend-lab1",
   "version": "1.0.0",
-  "description": "Backend Development Lab 2 - REST API for Tasks",
+  "description": "Backend Development Lab 1 - REST API for Tasks",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -12,13 +12,11 @@
     "#routes/*": "./routes/*.js",
     "#controllers/*": "./controllers/*.js",
     "#models/*": "./models/*.js",
-    "#data/*": "./data/*.js",
-    "#middleware/*": "./middleware/*.js"
+    "#db/*": "./db/*.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "helmet": "^8.1.0",
-    "jsonwebtoken": "^9.0.3"
+    "mysql2": "^3.19.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

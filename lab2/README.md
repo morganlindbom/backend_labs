@@ -1,123 +1,57 @@
-# Lab 2 – REST API with Authentication
+# Lab 1 – REST API med Express
 
-A REST API built with Node.js and Express for managing tasks. Lab 2 extends Lab 1 by adding two security layers on top of the existing CRUD API:
+En enkel REST API byggd med Node.js och Express för att hantera en lista av uppgifter (tasks). Datan lagras i minnet (in-memory) och ersätter en riktig databas.
 
-- **API Key** – required for all `/api/tasks` requests (sent in the `x-api-key` header)
-- **JWT** – issued via `/auth/login` and required for protected routes such as `/api/protected`
+## Teknik
 
-## Technologies
+- **Node.js** med ES-moduler (`"type": "module"`)
+- **Express** – webbramverk för HTTP-routing och middleware
 
-| Technology        | Purpose                                        |
-| ----------------- | ---------------------------------------------- |
-| Node.js           | JavaScript runtime                             |
-| Express           | HTTP routing and middleware framework          |
-| ES Modules        | `"type": "module"` – native import/export syntax |
-| Helmet            | Sets secure HTTP response headers automatically |
-| jsonwebtoken      | Signs and verifies JWT tokens                  |
-
----
-
-## Project Structure
+## Projektstruktur
 
 ```
-lab2/
-├── server.js                    # Entry point – creates and starts the Express server
+backend-lab1/
+├── server.js                   # Startpunkt – skapar och startar Express-servern
 ├── package.json
 ├── routes/
-│   ├── tasks.routes.js          # Route definitions for /api/tasks
-│   └── auth.routes.js           # Route definitions for /auth
+│   └── tasks.routes.js         # Definierar alla routes för /api/tasks
 ├── controllers/
-│   ├── tasks.controller.js      # HTTP logic for task operations
-│   └── auth.controller.js       # Login logic and JWT issuance
-├── middleware/
-│   ├── apiKey.middleware.js      # Validates the x-api-key header
-│   └── auth.middleware.js        # Validates JWT Bearer tokens
+│   └── tasks.controller.js     # Hanterar HTTP-logik (request/response)
 ├── models/
-│   └── tasks.model.js           # Data operations (read, create, update, delete)
+│   └── tasks.model.js          # Dataoperationer (läs, skapa, uppdatera, ta bort)
 └── data/
-    └── tasks.data.js            # In-memory data source
+    └── tasks.data.js           # In-memory datakälla
 ```
 
----
+## Kom igång
 
-## Getting Started
+### Förutsättningar
 
-### Prerequisites
+- Node.js version 18 eller senare
 
-- Node.js version 18 or later
-
-### Install and run
+### Installation och start
 
 ```bash
-cd lab2
+cd backend-lab1
 npm install
-npm run dev
+npm start
 ```
 
-The server starts at `http://localhost:3000`.
+Servern startar på `http://localhost:3000`.
 
----
+## API-endpoints
 
-## Authentication
+Bas-URL: `/api/tasks`
 
-### Layer 1 – API Key
+| Metod    | Endpoint          | Beskrivning                        |
+| -------- | ----------------- | ---------------------------------- |
+| `GET`    | `/api/tasks`      | Hämta alla uppgifter               |
+| `GET`    | `/api/tasks/:id`  | Hämta en specifik uppgift via id   |
+| `POST`   | `/api/tasks`      | Skapa en ny uppgift                |
+| `PUT`    | `/api/tasks/:id`  | Uppdatera en befintlig uppgift     |
+| `DELETE` | `/api/tasks/:id`  | Ta bort en uppgift                 |
 
-All requests to `/api/tasks` require the following header:
-
-```
-x-api-key: secret-api-key-1234
-```
-
-Requests without a valid key receive `401 Unauthorized`.
-
-### Layer 2 – JWT
-
-Protected routes require a Bearer token in the `Authorization` header:
-
-```
-Authorization: Bearer <token>
-```
-
-Tokens are obtained by logging in via `POST /auth/login`. A missing or invalid token returns `403 Forbidden`.
-
-### Login credentials (hardcoded for demo purposes)
-
-| Field      | Value      |
-| ---------- | ---------- |
-| `username` | `admin`    |
-| `password` | `password` |
-
----
-
-## API Endpoints
-
-Base URL: `http://localhost:3000`
-
-### Auth
-
-| Method | Endpoint       | Auth required | Description                   |
-| ------ | -------------- | ------------- | ----------------------------- |
-| `POST` | `/auth/login`  | None          | Log in and receive a JWT token |
-
-### Tasks
-
-| Method   | Endpoint          | Auth required | Description              |
-| -------- | ----------------- | ------------- | ------------------------ |
-| `GET`    | `/api/tasks`      | API Key       | Get all tasks            |
-| `GET`    | `/api/tasks/:id`  | API Key       | Get a single task by id  |
-| `POST`   | `/api/tasks`      | API Key       | Create a new task        |
-| `PUT`    | `/api/tasks/:id`  | API Key       | Update an existing task  |
-| `DELETE` | `/api/tasks/:id`  | API Key       | Delete a task            |
-
-### Protected route
-
-| Method | Endpoint          | Auth required | Description                        |
-| ------ | ----------------- | ------------- | ---------------------------------- |
-| `GET`  | `/api/protected`  | JWT token     | Example route protected by JWT     |
-
----
-
-## Data Model
+### Datamodell
 
 ```json
 {
@@ -127,88 +61,42 @@ Base URL: `http://localhost:3000`
 }
 ```
 
-The `title` field is required when creating a task. `completed` is optional and defaults to `false` if omitted.
+### Exempel – hämta alla uppgifter
 
----
-
-## Example Requests
-
-### Login and receive a token
-
-```bash
-curl -X POST http://localhost:3000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"password"}'
 ```
-
-Response:
+GET http://localhost:3000/api/tasks
+```
 
 ```json
 {
   "success": true,
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "data": [
+    { "id": 1, "title": "Buy groceries", "completed": false },
+    { "id": 2, "title": "Read a book", "completed": true },
+    { "id": 3, "title": "Write lab report", "completed": false }
+  ]
 }
 ```
 
-### Access the protected route
+### Exempel – skapa en uppgift
 
-Replace `TOKEN` with the value from the login response:
+```
+POST http://localhost:3000/api/tasks
+Content-Type: application/json
 
-```bash
-curl http://localhost:3000/api/protected \
-  -H "Authorization: Bearer TOKEN"
+{
+  "title": "Study for exam",
+  "completed": false
+}
 ```
 
-### Get all tasks
+Fältet `title` är obligatoriskt. `completed` är valfritt och sätts till `false` om det utelämnas.
 
-```bash
-curl http://localhost:3000/api/tasks \
-  -H "x-api-key: secret-api-key-1234"
-```
+### Felhantering
 
-### Create a task
-
-```bash
-curl -X POST http://localhost:3000/api/tasks \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: secret-api-key-1234" \
-  -d '{"title":"Study for exam","completed":false}'
-```
-
-### Update a task
-
-```bash
-curl -X PUT http://localhost:3000/api/tasks/1 \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: secret-api-key-1234" \
-  -d '{"title":"Buy groceries","completed":true}'
-```
-
-### Delete a task
-
-```bash
-curl -X DELETE http://localhost:3000/api/tasks/1 \
-  -H "x-api-key: secret-api-key-1234"
-```
-
-> **Windows / PowerShell note:** Use `curl.exe` instead of `curl` to avoid the PowerShell alias. Replace single quotes with double quotes and escape inner quotes with `\"`.
-
----
-
-## Error Handling
-
-| Status code        | When it occurs                                     |
-| ------------------ | -------------------------------------------------- |
-| `200 OK`           | Successful GET or PUT                              |
-| `201 Created`      | New resource created via POST                      |
-| `400 Bad Request`  | Missing or invalid field in the request body       |
-| `401 Unauthorized` | Missing or invalid API key                         |
-| `403 Forbidden`    | Missing or invalid JWT token                       |
-| `404 Not Found`    | No resource found with the given id                |
-
----
-
-## Notes
-
-- Tasks are stored **in memory**. All data is lost when the server restarts.
-- Credentials and keys are hardcoded for demonstration purposes. In a real application these would be stored in environment variables and a database.
+| HTTP-statuskod | Situation                                     |
+| -------------- | --------------------------------------------- |
+| `200 OK`       | Lyckad GET eller PUT                          |
+| `201 Created`  | Ny resurs skapad via POST                     |
+| `400 Bad Request` | Saknat eller ogiltigt fält i request body  |
+| `404 Not Found`   | Ingen uppgift hittades med angivet id       |

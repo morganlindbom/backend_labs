@@ -5,20 +5,10 @@
 // and starts listening on the configured port.
 
 import express from "express";
-import helmet from "helmet";
-import taskRoutes from "#routes/tasks.routes";
-import authRoutes from "#routes/auth.routes";
-import apiKeyMiddleware from "#middleware/apiKey.middleware";
-import authMiddleware from "#middleware/auth.middleware";
+import itemsRoutes from "#routes/itemsRoutes";
 
 const app = express();
 const PORT = 3000;
-
-// Apply Helmet to set secure HTTP response headers.
-app.use(helmet());
-
-// Disable the Express signature header to avoid leaking server info.
-app.disable("x-powered-by");
 
 // Middleware: parse incoming requests with JSON payloads.
 // This makes req.body available for POST and PUT requests.
@@ -28,26 +18,35 @@ app.use(express.json());
 // Makes API output easier to read in the browser.
 app.set("json spaces", 2);
 
-// Mount the auth router under /auth.
-// Login does not require an API key or JWT.
-app.use("/auth", authRoutes);
+// Mount the items router under /items.
+// All routes in itemsRoutes.js are now relative to this path.
+app.use("/items", itemsRoutes);
 
-// Mount the tasks router under /api/tasks.
-// All task routes require a valid API key.
-app.use("/api/tasks", apiKeyMiddleware, taskRoutes);
+function logServerStartup() {
+  /*
+  """short description
 
-// Protected example route — requires a valid JWT token.
-app.get("/api/protected", authMiddleware, (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: `Hello ${req.user.username}, you have access to this protected route.`,
-  });
-});
+  Print startup information so API routes and curl examples are visible on boot.
+  """
+  */
+  console.log("================================================");
+  console.log("  Lab 1 - REST API");
+  console.log("================================================");
+  console.log(`\nServer running:\nhttp://localhost:${PORT}\n`);
+  console.log("API");
+  console.log(`GET    /items`);
+  console.log(`GET    /items/:id`);
+  console.log(`POST   /items`);
+  console.log(`PUT    /items/:id`);
+  console.log(`DELETE /items/:id`);
+  console.log("\nCURL EXAMPLES");
+  console.log(`curl http://localhost:${PORT}/items`);
+  console.log(`curl http://localhost:${PORT}/items/1`);
+  console.log(`curl -X POST http://localhost:${PORT}/items -H "Content-Type: application/json" -d "{\\"title\\":\\"New item\\",\\"description\\":\\"Created from curl\\",\\"status\\":\\"pending\\"}"`);
+  console.log(`curl -X PUT http://localhost:${PORT}/items/1 -H "Content-Type: application/json" -d "{\\"title\\":\\"Updated item\\",\\"description\\":\\"Updated from curl\\",\\"status\\":\\"in_progress\\"}"`);
+  console.log(`curl -X DELETE http://localhost:${PORT}/items/1`);
+  console.log("\n================================================\n");
+}
 
 // Start the HTTP server and begin listening for incoming connections
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(`Tasks endpoint:     http://localhost:${PORT}/api/tasks`);
-  console.log(`Auth endpoint:      http://localhost:${PORT}/auth/login`);
-  console.log(`Protected endpoint: http://localhost:${PORT}/api/protected`);
-});
+app.listen(PORT, logServerStartup);
