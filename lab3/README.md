@@ -1,214 +1,130 @@
-# Lab 2 – REST API with Authentication
+# Lab 2 - Secure REST API with Express
 
-A REST API built with Node.js and Express for managing tasks. Lab 2 extends Lab 1 by adding two security layers on top of the existing CRUD API:
+This Lab2 project is an Express and MySQL API for `items` with MVC structure, API key protection, and JWT-based login.
 
-- **API Key** – required for all `/api/tasks` requests (sent in the `x-api-key` header)
-- **JWT** – issued via `/auth/login` and required for protected routes such as `/api/protected`
+## Tech
 
-## Technologies
+- Node.js with ES modules
+- Express
+- MySQL with `mysql2`
+- Helmet for secure HTTP headers
+- `bcrypt` for password hashing
+- `jsonwebtoken` for JWT authentication
 
-| Technology        | Purpose                                        |
-| ----------------- | ---------------------------------------------- |
-| Node.js           | JavaScript runtime                             |
-| Express           | HTTP routing and middleware framework          |
-| ES Modules        | `"type": "module"` – native import/export syntax |
-| Helmet            | Sets secure HTTP response headers automatically |
-| jsonwebtoken      | Signs and verifies JWT tokens                  |
-
----
-
-## Project Structure
-
-```
-lab2/
-├── server.js                    # Entry point – creates and starts the Express server
-├── package.json
-├── routes/
-│   ├── tasks.routes.js          # Route definitions for /api/tasks
-│   └── auth.routes.js           # Route definitions for /auth
-├── controllers/
-│   ├── tasks.controller.js      # HTTP logic for task operations
-│   └── auth.controller.js       # Login logic and JWT issuance
-├── middleware/
-│   ├── apiKey.middleware.js      # Validates the x-api-key header
-│   └── auth.middleware.js        # Validates JWT Bearer tokens
-├── models/
-│   └── tasks.model.js           # Data operations (read, create, update, delete)
-└── data/
-    └── tasks.data.js            # In-memory data source
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js version 18 or later
-
-### Install and run
+## Start
 
 ```bash
 cd lab2
 npm install
-npm run dev
+npm start
 ```
 
-The server starts at `http://localhost:3000`.
+The server runs at `http://localhost:3000`.
 
----
+## Environment variables
 
-## Authentication
+The server reads these values from `.env`:
 
-### Layer 1 – API Key
-
-All requests to `/api/tasks` require the following header:
-
-```
-x-api-key: secret-api-key-1234
-```
-
-Requests without a valid key receive `401 Unauthorized`.
-
-### Layer 2 – JWT
-
-Protected routes require a Bearer token in the `Authorization` header:
-
-```
-Authorization: Bearer <token>
+```text
+API_KEY=hkr-lab2-key
+JWT_SECRET=lab2-super-secret-key
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your-password
+DB_NAME=labs
 ```
 
-Tokens are obtained by logging in via `POST /auth/login`. A missing or invalid token returns `403 Forbidden`.
+An `.env.example` file is included as a reference, and `.env` is ignored by git.
 
-### Login credentials (hardcoded for demo purposes)
+## Security configuration
 
-| Field      | Value      |
-| ---------- | ---------- |
-| `username` | `admin`    |
-| `password` | `password` |
+- Helmet is enabled
+- `x-powered-by` is disabled
+- Dependencies were updated with `npm update`
+- `npm audit` reports 0 vulnerabilities
 
----
+## User login
 
-## API Endpoints
+The application contains a hard-coded user:
 
-Base URL: `http://localhost:3000`
+- Username: `doe`
+- Password: `doe`
 
-### Auth
+The password is stored as a bcrypt hash and the login route returns a JWT token.
 
-| Method | Endpoint       | Auth required | Description                   |
-| ------ | -------------- | ------------- | ----------------------------- |
-| `POST` | `/auth/login`  | None          | Log in and receive a JWT token |
+## Routes
 
-### Tasks
+Base URL: `/api/items`
 
-| Method   | Endpoint          | Auth required | Description              |
-| -------- | ----------------- | ------------- | ------------------------ |
-| `GET`    | `/api/tasks`      | API Key       | Get all tasks            |
-| `GET`    | `/api/tasks/:id`  | API Key       | Get a single task by id  |
-| `POST`   | `/api/tasks`      | API Key       | Create a new task        |
-| `PUT`    | `/api/tasks/:id`  | API Key       | Update an existing task  |
-| `DELETE` | `/api/tasks/:id`  | API Key       | Delete a task            |
+All routes below require a JWT token except `POST /api/items/login`.
 
-### Protected route
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+| GET | `/api/items` | Get all items |
+| GET | `/api/items/:id` | Get one item by id |
+| POST | `/api/items` | Create a new item |
+| PUT | `/api/items/:id` | Update an item |
+| DELETE | `/api/items/:id` | Delete an item |
+| GET | `/api/items/status/:status` | Filter items by status |
+| GET | `/api/items/search/:title` | Search items by title |
+| POST | `/api/items/login` | Login and receive JWT |
+| GET | `/api/items/secure/api-key` | Protected by API key |
+| GET | `/api/items/secure/jwt` | Protected by JWT |
 
-| Method | Endpoint          | Auth required | Description                        |
-| ------ | ----------------- | ------------- | ---------------------------------- |
-| `GET`  | `/api/protected`  | JWT token     | Example route protected by JWT     |
+## Testing API key
 
----
+Valid API key value in `.env`:
 
-## Data Model
+```text
+API_KEY=hkr-lab2-key
+```
 
-```json
+Use query string:
+
+```text
+GET http://localhost:3000/api/items/secure/api-key?apiKey=hkr-lab2-key
+```
+
+Or use header:
+
+```text
+x-api-key: hkr-lab2-key
+```
+
+Invalid or missing API key returns `401 Unauthorized`.
+
+## Testing JWT
+
+Login request:
+
+```http
+POST /api/items/login
+Content-Type: application/json
+
 {
-  "id": 1,
-  "title": "Buy groceries",
-  "completed": false
+  "username": "doe",
+  "password": "doe"
 }
 ```
 
-The `title` field is required when creating a task. `completed` is optional and defaults to `false` if omitted.
-
----
-
-## Example Requests
-
-### Login and receive a token
-
-```bash
-curl -X POST http://localhost:3000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"password"}'
-```
-
-Response:
+Example success response:
 
 ```json
 {
-  "success": true,
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "token": "<jwt-token>"
 }
 ```
 
-### Access the protected route
+Use the token in the header:
 
-Replace `TOKEN` with the value from the login response:
-
-```bash
-curl http://localhost:3000/api/protected \
-  -H "Authorization: Bearer TOKEN"
+```text
+Authorization: Bearer <jwt-token>
 ```
 
-### Get all tasks
+Protected route:
 
-```bash
-curl http://localhost:3000/api/tasks \
-  -H "x-api-key: secret-api-key-1234"
+```text
+GET http://localhost:3000/api/items/secure/jwt
 ```
 
-### Create a task
-
-```bash
-curl -X POST http://localhost:3000/api/tasks \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: secret-api-key-1234" \
-  -d '{"title":"Study for exam","completed":false}'
-```
-
-### Update a task
-
-```bash
-curl -X PUT http://localhost:3000/api/tasks/1 \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: secret-api-key-1234" \
-  -d '{"title":"Buy groceries","completed":true}'
-```
-
-### Delete a task
-
-```bash
-curl -X DELETE http://localhost:3000/api/tasks/1 \
-  -H "x-api-key: secret-api-key-1234"
-```
-
-> **Windows / PowerShell note:** Use `curl.exe` instead of `curl` to avoid the PowerShell alias. Replace single quotes with double quotes and escape inner quotes with `\"`.
-
----
-
-## Error Handling
-
-| Status code        | When it occurs                                     |
-| ------------------ | -------------------------------------------------- |
-| `200 OK`           | Successful GET or PUT                              |
-| `201 Created`      | New resource created via POST                      |
-| `400 Bad Request`  | Missing or invalid field in the request body       |
-| `401 Unauthorized` | Missing or invalid API key                         |
-| `403 Forbidden`    | Missing or invalid JWT token                       |
-| `404 Not Found`    | No resource found with the given id                |
-
----
-
-## Notes
-
-- Tasks are stored **in memory**. All data is lost when the server restarts.
-- Credentials and keys are hardcoded for demonstration purposes. In a real application these would be stored in environment variables and a database.
+Invalid or missing token returns `401 Unauthorized`.

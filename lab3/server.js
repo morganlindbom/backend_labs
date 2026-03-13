@@ -4,21 +4,34 @@
 // Creates the Express server, registers middleware, mounts routes,
 // and starts listening on the configured port.
 
+import "dotenv/config";
 import express from "express";
 import helmet from "helmet";
-import taskRoutes from "#routes/tasks.routes";
-import authRoutes from "#routes/auth.routes";
-import apiKeyMiddleware from "#middleware/apiKey.middleware";
-import authMiddleware from "#middleware/auth.middleware";
+import itemsRoutes from "#routes/itemsRoutes";
+
+// Fail fast on startup if required secrets or database settings are missing.
+const requiredEnvVars = [
+  "API_KEY",
+  "JWT_SECRET",
+  "DB_HOST",
+  "DB_USER",
+  "DB_PASSWORD",
+  "DB_NAME",
+];
+
+for (const envVarName of requiredEnvVars) {
+  if (!process.env[envVarName]) {
+    throw new Error(`Missing required environment variable: ${envVarName}`);
+  }
+}
 
 const app = express();
 const PORT = 3000;
 
-// Apply Helmet to set secure HTTP response headers.
-app.use(helmet());
-
-// Disable the Express signature header to avoid leaking server info.
 app.disable("x-powered-by");
+
+// Helmet adds common HTTP security headers for the whole application.
+app.use(helmet());
 
 // Middleware: parse incoming requests with JSON payloads.
 // This makes req.body available for POST and PUT requests.
@@ -28,26 +41,45 @@ app.use(express.json());
 // Makes API output easier to read in the browser.
 app.set("json spaces", 2);
 
-// Mount the auth router under /auth.
-// Login does not require an API key or JWT.
-app.use("/auth", authRoutes);
+// Mount the items router under /api/items.
+// All routes in itemsRoutes.js are now relative to this path.
+app.use("/api/items", itemsRoutes);
 
-// Mount the tasks router under /api/tasks.
-// All task routes require a valid API key.
-app.use("/api/tasks", apiKeyMiddleware, taskRoutes);
+function logServerStartup() {
+  /*
+  """short description
 
-// Protected example route — requires a valid JWT token.
-app.get("/api/protected", authMiddleware, (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: `Hello ${req.user.username}, you have access to this protected route.`,
-  });
-});
+  Print startup information so API routes and curl examples are visible on boot.
+  """
+  */
+  console.log("================================================");
+  console.log("  Lab 2 - Secured REST API");
+  console.log("================================================");
+  console.log(`\nServer running:\nhttp://localhost:${PORT}\n`);
+  console.log("API");
+  console.log(`GET    /api/items`);
+  console.log(`GET    /api/items/:id`);
+  console.log(`POST   /api/items`);
+  console.log(`PUT    /api/items/:id`);
+  console.log(`DELETE /api/items/:id`);
+  console.log(`GET    /api/items/status/:status`);
+  console.log(`GET    /api/items/search/:title`);
+  console.log(`POST   /api/items/login`);
+  console.log(`GET    /api/items/secure/api-key`);
+  console.log(`GET    /api/items/secure/jwt`);
+  console.log("\nCURL EXAMPLES");
+  console.log(`curl http://localhost:${PORT}/api/items`);
+  console.log(`curl http://localhost:${PORT}/api/items/1`);
+  console.log(`curl http://localhost:${PORT}/api/items/status/pending`);
+  console.log(`curl http://localhost:${PORT}/api/items/search/task`);
+  console.log(`curl http://localhost:${PORT}/api/items/secure/api-key?apiKey=<your-api-key>`);
+  console.log(`curl -X POST http://localhost:${PORT}/api/items/login -H "Content-Type: application/json" -d "{\\"username\\":\\"doe\\",\\"password\\":\\"doe\\"}"`);
+  console.log(`curl http://localhost:${PORT}/api/items/secure/jwt -H "Authorization: Bearer <token>"`);
+  console.log(`curl -X POST http://localhost:${PORT}/api/items -H "Content-Type: application/json" -d "{\\"title\\":\\"New item\\",\\"description\\":\\"Created from curl\\",\\"status\\":\\"pending\\"}"`);
+  console.log(`curl -X PUT http://localhost:${PORT}/api/items/1 -H "Content-Type: application/json" -d "{\\"title\\":\\"Updated item\\",\\"description\\":\\"Updated from curl\\",\\"status\\":\\"in_progress\\"}"`);
+  console.log(`curl -X DELETE http://localhost:${PORT}/api/items/1`);
+  console.log("\n================================================\n");
+}
 
 // Start the HTTP server and begin listening for incoming connections
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(`Tasks endpoint:     http://localhost:${PORT}/api/tasks`);
-  console.log(`Auth endpoint:      http://localhost:${PORT}/auth/login`);
-  console.log(`Protected endpoint: http://localhost:${PORT}/api/protected`);
-});
+app.listen(PORT, logServerStartup);

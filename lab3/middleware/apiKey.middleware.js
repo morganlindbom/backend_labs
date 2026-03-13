@@ -1,30 +1,21 @@
-// apiKey.middleware.js
+function verifyAPIKey(req, res, next) {
+  // API key can be sent either as query parameter (?apiKey=...) or as header (x-api-key).
+  const queryApiKey = req.query.apiKey;
+  const headerApiKey = req.get("x-api-key");
 
-// Middleware that protects routes by requiring a valid API key.
-// The key must be sent in the request header "x-api-key".
+  // Prefer whichever value the client supplied.
+  const suppliedApiKey = queryApiKey || headerApiKey;
 
-// Predefined valid API key.
-// In a real application this would be stored in an environment variable.
-const VALID_API_KEY = "secret-api-key-1234";
+  // Expected key is loaded from environment variables.
+  const expectedApiKey = process.env.API_KEY;
 
-function apiKeyMiddleware(req, res, next) {
-  /*
-  Validate the API key provided in the request header.
-
-  Reads the "x-api-key" header and compares it with the predefined key.
-  Responds with 401 Unauthorized if the key is missing or incorrect.
-  Calls next() if the key is valid.
-  */
-  const apiKey = req.headers["x-api-key"];
-
-  if (!apiKey || apiKey !== VALID_API_KEY) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid or missing API key",
-    });
+  // Reject when key is missing or does not match configured key.
+  if (!suppliedApiKey || suppliedApiKey !== expectedApiKey) {
+    return res.status(401).json({ error: "Invalid API key" });
   }
 
-  next();
+  // Key is valid, continue to the protected route handler.
+  return next();
 }
 
-export default apiKeyMiddleware;
+export default verifyAPIKey;
